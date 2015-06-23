@@ -1,0 +1,116 @@
+<% var title = 'User Manage | LearnVid - E-learning Video Online' %>
+<% include header %>
+
+    <nav>
+        <ul>
+          <li><a href="/user_manage" class="current" style="font-size:18px">Users</a></li>
+          <li><a href="/video_manage" style="font-size:18px">Video</a></li>
+          <li><a href="/logs" style="font-size:18px">Logs</a></li>          
+          <li><a href="/logout" style="font-size:18px">Logout</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div class="main-box">
+    <div class="container">
+
+      <div class="inside">
+        <div class="wrapper zerogrid">
+      <div class="row">
+
+          <!-- content -->
+      <div class="col-2-3">
+        <div class="wrap-col">
+              <section id="content">
+
+                <div class="fancy-table" >
+                  <% if (error != 'none') { %>
+                  <h2 style="color:red"><%= error %></h2>
+                  <% } %>
+                  <h2>User Data</h2>
+                  <table style="width:120%">
+                    <tr>
+                      <td>Identity number</td>
+                      <td>Name</td>
+                      <td>Username</td>
+                      <td>Email Address</td>
+                      <td>Role</td>
+                      <td>Status</td>
+                      <td>Action</td>
+                    </tr>
+                    <% if (data.length <= 0) {%>
+                    <h3>Data Not found</h3>
+                    <%} else { for (var i = 0; i < data.length; i++) {%>
+                    <tr>
+                      <td><%= data[i].identity_number %></td>
+                      <td><%= data[i].name %></td>
+                      <td><%= data[i].username %></td>
+                      <td><%= data[i].email %></td>
+                      <td><%= data[i].role %></td>
+                      <td><%= data[i].status %></td>
+                      <td><a href="/confirm_edit?id=<%= data[i].identity_number %>">edit</a> <br> <a href="/confirm_delete?id=<%= data[i].identity_number %>">delete</a></td>
+                    </tr>
+                    <% }} %>
+                  </table>
+                </div>
+
+                <br>
+                <br>
+
+                <form class="pure-form pure-form-aligned" method="POST" action="/user_manage">
+                    <fieldset>
+                      <div class="pure-control-group">
+                            <h2>Create User Account</h2>
+                            <h3>*Make sure identity number and username unique</h3>
+                            <label for="name">Identity Number</label>
+                            <input name="number" type="text" placeholder="Identity number">
+                        </div>
+
+                        <div class="pure-control-group">
+                            <label for="name">Name</label>
+                            <input name="name" type="text" placeholder="Name">
+                        </div>
+
+                        <div class="pure-control-group">
+                            <label for="name">Username</label>
+                            <input name="username" type="text" placeholder="Username">
+                        </div>
+
+                        <div class="pure-control-group">
+                            <label for="password">Password</label>
+                            <input name="password" type="password" placeholder="Password">
+                        </div>
+
+                        <div class="pure-control-group">
+                            <label for="email">Email Address</label>
+                            <input name="email" type="email" placeholder="Email Address">
+                        </div>
+
+                        <div class="pure-control-group">
+                            <label for="admin" class="pure-radio">
+                              <input type="radio" name="role" value="administrator" checked>
+                              Administrator
+                            </label>
+                            <label for="lecturer" class="pure-radio">
+                              <input type="radio" name="role" value="lecturer">
+                              Lecturer
+                            </label>
+                        </div>
+
+                        <div class="pure-controls">
+                            <button type="submit" class="pure-button pure-button-primary">Submit</button>
+                        </div>
+                    </fieldset>
+                </form>
+
+              </section>
+        </div>
+      </div>
+      </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<% include footer %>

@@ -1,0 +1,124 @@
+<% var title = 'Conference Master | LearnVid - E-learning Video Online' %>
+<% include header %>
+
+    <nav>
+        <ul>
+          <li><a href="/video_upload" style="font-size:18px">Upload</a></li>
+          <li><a href="/conference_master" class="current" style="font-size:18px">Conference</a></li>
+          <li><a href="/logout" style="font-size:18px">Logout</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div class="main-box">
+    <div class="container">
+
+      <div class="inside">
+        <div class="wrapper zerogrid">
+      <div class="row">
+
+          <!-- content -->
+      <div class="col-2-3">
+        <div class="wrap-col">
+              <section id="content">
+
+                <h3>*Make sure you have active webcam and audio speaker</h3>
+                <div style="background-color:black">
+                  <video id="video" width="640" height="480" autoplay></video>
+                </div>
+                <br>
+                <button id="OnAir">OnAir</button> &nbsp
+                <button id="Stop" style="background-color:red">Stop</button>
+
+                <script src="/public/js/peerjs.js"></script>
+
+                <script>
+
+                    var user = '<%- username %>';
+                    var server = '<%- ip %>';
+                    var server_port = '<%- port %>';
+                    var server_path = '<%- path %>';
+
+                    // Put event listeners into place
+                    window.addEventListener("DOMContentLoaded", function() {
+                      // Grab elements, create settings, etc.
+                      var video = document.getElementById("video"),
+                        videoObj = { "video": true, "audio": true },
+                        errBack = function(error) {
+                          console.log("Video capture error: ", error.code); 
+                        };
+
+                      var peer = new Peer(user, {host: server, port: server_port, path: server_path});
+
+                      // Put video listeners into place
+                      if(navigator.getUserMedia) { // Standard
+                        navigator.getUserMedia(videoObj, function(stream) {
+                          video.src = stream;
+                          video.play();
+                        }, errBack);
+                      } else if(navigator.webkitGetUserMedia) { // WebKit-prefixed
+                        document.getElementById("OnAir").addEventListener("click", function() {
+                          navigator.webkitGetUserMedia(videoObj, function(stream){
+                            video.src = window.URL.createObjectURL(stream);
+                            video.play();
+                            document.getElementById("Stop").addEventListener("click", function() {
+                              video.pause();
+                            });
+                            peer.on('call', function(call) {
+
+                                call.answer(stream);
+                                document.getElementById("Stop").addEventListener("click", function() {
+                                    call.close();
+                                });
+                            
+                                call.on('stream', function(remoteStream) {
+                                  //video.src = window.URL.createObjectURL(remoteStream);
+                                  //video.play();
+                                })
+                              
+                            })
+                          }, errBack);
+                        });
+                      }
+                      else if(navigator.mozGetUserMedia) { // Firefox-prefixed
+
+                        document.getElementById("OnAir").addEventListener("click", function() {
+                          navigator.mozGetUserMedia(videoObj, function(stream){
+                            video.src = window.URL.createObjectURL(stream);
+                            video.play();
+                            document.getElementById("Stop").addEventListener("click", function() {
+                              video.pause();
+                            });
+                            peer.on('call', function(call) {
+
+                                call.answer(stream);
+                                document.getElementById("Stop").addEventListener("click", function() {
+                                    call.close();
+                                });
+                            
+                                call.on('stream', function(remoteStream) {
+                                  //video.src = window.URL.createObjectURL(remoteStream);
+                                  //video.play();
+                                })
+                              
+                            })
+                          }, errBack);
+                        });
+    
+                      }
+
+                    }, false);
+                    
+                </script>
+
+              </section>
+        </div>
+      </div>
+      </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<% include footer %>

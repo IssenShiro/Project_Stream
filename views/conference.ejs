@@ -1,0 +1,59 @@
+<% var title = 'VidConference | LearnVid - E-learning Video Online' %>
+<% include header %>
+
+    <nav>
+        <ul>
+          <li><a href="/" style="font-size:18px">Home</a></li>
+          <li><a href="/conference" class="current" style="font-size:18px">Conference</a></li>
+          <li><a href="/streaming" style="font-size:18px">Streaming</a></li>          
+          <li><a href="/login_page" style="font-size:18px">Log in</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div class="main-box">
+    <div class="container">
+      <div class="inside">
+        <div class="wrapper zerogrid">
+      <div class="row">
+
+          <!-- content -->
+      <div class="col-2-3">
+        <div class="wrap-col">
+              <section id="content">
+
+                <div class="fancy-table" >
+                  <table style="width:120%">
+                    <h2>Lecturer Data</h2>
+                    <tr>
+                      <td>NIP</td>
+                      <td>Lecturer</td>
+                      <td>Email</td>
+                      <td>Status</td>
+                      <td>View</td>
+                    </tr>
+                     <% if (data.length <= 0) {%>
+                    <h3>Data Not found</h3>
+                    <%} else { for (var i = 0; i < data.length; i++) {%>
+                    <tr>
+                      <td><%= data[i].identity_number %></td>
+                      <td><%= data[i].name %></td>
+                      <td><%= data[i].email %></td>
+                      <td><%= data[i].status %></td>
+                      <td><a href="/conference/<%= data[i].username %>">streaming</a></td>
+                    </tr>
+                    <% }} %>
+                  </table>
+                </div>
+
+              </section>
+        </div>
+      </div>
+      </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<% include footer %>

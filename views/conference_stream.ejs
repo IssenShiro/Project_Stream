@@ -1,0 +1,116 @@
+<% var title = username + ' | LearnVid - E-learning Video Online' %>
+<% include header %>
+
+    <nav>
+        <ul>
+          <li><a href="/" style="font-size:18px">Home</a></li>
+          <li><a href="/conference" class="current" style="font-size:18px">Conference</a></li>
+          <li><a href="/streaming" style="font-size:18px">Streaming</a></li>          
+          <li><a href="/login_page" style="font-size:18px">Log in</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div class="main-box">
+    <div class="container">
+      <div class="inside">
+        <div class="wrapper zerogrid">
+      <div class="row">
+
+          <!-- content -->
+      <div class="col-2-3">
+        <div class="wrap-col">
+              <section id="content">
+
+                <h2>Conference with <%= username %></h2>
+                <h3>*Make sure you have an active webcam</h3>
+                <div style="background-color:black">
+                  <video id="watch" width="640" height="480" autoplay></video>
+                </div>
+                <br>
+                <button id="Reload">Start/Reload</button>
+
+                <script src="/public/js/peerjs.js"></script>
+
+                <script>
+                    
+                    function guid() {
+                        function _p8(s) {
+                            var p = (Math.random().toString(16)+"000000000").substr(2,8);
+                            return s ? "-" + p.substr(0,4) + "-" + p.substr(4,4) : p ;
+                        }
+                        return _p8() + _p8(true) + _p8(true) + _p8();
+                    }
+
+                    var lecturer = '<%- username %>';
+                    var uuid = guid();
+                    var server = '<%- ip %>';
+                    var server_port = '<%- port %>';
+                    var server_path = '<%- path %>';
+                    
+                    // Put event listeners into place
+                    window.addEventListener("DOMContentLoaded", function() {
+                      // No API key required when not using cloud server
+                      var peer = new Peer(uuid, {host: server, port: server_port, path: server_path});
+
+                      // Grab elements, create settings, etc.
+                      var watch = document.getElementById("watch"),
+                        videoObj = { "video": true, "audio" : false },
+                        errBack = function(error) {
+                          console.log("Video capture error: ", error.code); 
+                        };
+
+                      // Put video listeners into place
+                      if(navigator.getUserMedia) { // Standard
+                        document.getElementById("Reload").addEventListener("click", function() {
+                          navigator.getUserMedia(videoObj, function(stream) {
+                            var call = peer.call(lecturer, stream);
+                           
+                            call.on('stream', function(remoteStream) {
+                              watch.src = window.URL.createObjectURL(remoteStream);
+                              watch.play();
+                            });
+                          }, errBack);
+                        });
+                      } else if(navigator.webkitGetUserMedia) { // WebKit-prefixed
+                        document.getElementById("Reload").addEventListener("click", function() {
+                          navigator.webkitGetUserMedia(videoObj, function(stream){
+                            var call = peer.call(lecturer, new webkitMediaStream());
+                           
+                            call.on('stream', function(remoteStream) {
+                              watch.src = window.URL.createObjectURL(remoteStream);
+                              watch.play();
+                            })
+                          }, errBack);
+                        });
+                      }
+                      else if(navigator.mozGetUserMedia) { // Firefox-prefixed
+
+                        document.getElementById("Reload").addEventListener("click", function() {
+                          navigator.mozGetUserMedia(videoObj, function(stream){
+                            var call = peer.call(lecturer, stream);
+                           
+                            call.on('stream', function(remoteStream) {
+                              watch.src = window.URL.createObjectURL(remoteStream);
+                              watch.play();
+                            })
+                          }, errBack);
+                        });
+                      
+                      }
+                             
+                    }, false);
+
+                </script>
+
+              </section>
+        </div>
+      </div>
+      </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<% include footer %>

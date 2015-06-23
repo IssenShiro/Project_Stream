@@ -1,0 +1,84 @@
+<% var title = 'Confirm Edit | LearnVid - E-learning Video Online' %>
+<% include header %>
+
+    <nav>
+        <ul>
+          <li><a href="/user_manage" class="current" style="font-size:18px">Users</a></li>
+          <li><a href="/video_manage" style="font-size:18px">Video</a></li>
+          <li><a href="/logs" style="font-size:18px">Logs</a></li>          
+          <li><a href="/logout" style="font-size:18px">Logout</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div class="main-box">
+    <div class="container">
+
+      <div class="inside">
+        <div class="wrapper zerogrid">
+      <div class="row">
+
+          <!-- content -->
+      <div class="col-2-3">
+        <div class="wrap-col">
+              <section id="content">
+
+                    <form class="pure-form pure-form-aligned" method="POST" action="/edit_user">
+                    <fieldset>
+                      <div class="pure-control-group">
+                            <h2>Edit User Account</h2>
+                            <label for="name">Identity Number</label>
+                            <input name="number" type="text" placeholder="Identity number" value="<%= data.identity_number %>">
+                        </div>
+
+                        <div class="pure-control-group">
+                            <label for="name">Name</label>
+                            <input name="name" type="text" placeholder="Name" value="<%= data.name %>">
+                        </div>
+
+                        <div class="pure-control-group">
+                            <label for="name">Username</label>
+                            <input name="username" type="text" placeholder="Username" value="<%= data.username %>">
+                        </div>
+
+                        <div class="pure-control-group">
+                            <label for="password">Password</label>
+                            <input name="password" type="password" placeholder="Password">
+                        </div>
+
+                        <div class="pure-control-group">
+                            <label for="email">Email Address</label>
+                            <input name="email" type="email" placeholder="Email Address" value="<%= data.email %>">
+                        </div>
+
+                        <div class="pure-control-group">
+                            <label for="admin" class="pure-radio">
+                              <input type="radio" name="role" value="administrator" checked>
+                              Administrator
+                            </label>
+                            <label for="lecturer" class="pure-radio">
+                              <input type="radio" name="role" value="lecturer">
+                              Lecturer
+                            </label>
+                        </div>
+
+                        <div class="pure-controls">
+                            <button type="submit" class="pure-button pure-button-primary">Submit</button>
+                            <br>
+                            <br>
+                            <a href="/user_manage">Cancel and back to main</a>
+                        </div>
+                    </fieldset>
+                </form>
+
+              </section>
+        </div>
+      </div>
+      </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<% include footer %>

@@ -1,0 +1,299 @@
+<% var title = 'Home | CertiTrust - Creating Trust Online' %>
+<% include header %>
+
+    <nav>
+        <ul>
+          <li><a href="/" class="current">Home</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="/feature">Feature</a></li>          
+          <li><a href="/register">Register</a></li>
+          <li><a href="/login_page">Log in</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div class="main-box">
+    <div class="container">
+      <div class="inside">
+        <div class="wrapper zerogrid">
+      <div class="row">
+
+          <!-- content -->
+      <div class="col-2-3">
+        <div class="wrap-col">
+              <section id="content">
+                
+                <video id="video" width="640" height="480" autoplay></video>
+                <button id="snap">Snap Photo</button>
+                <video id="mirror" width="640" height="480" autoplay></video>
+                <canvas id="canvas" width="640" height="480"></canvas>
+
+                <script type="text/javascript">
+                    // Put event listeners into place
+                    window.addEventListener("DOMContentLoaded", function() {
+                      // Grab elements, create settings, etc.
+                      var canvas = document.getElementById("canvas"),
+                        context = canvas.getContext("2d"),
+                        video = document.getElementById("video"),
+                        videoObj = { "video": true },
+                        errBack = function(error) {
+                          console.log("Video capture error: ", error.code); 
+                        };
+
+                      // Put video listeners into place
+                      if(navigator.getUserMedia) { // Standard
+                        navigator.getUserMedia(videoObj, function(stream) {
+                          video.src = stream;
+                          video.play();
+                        }, errBack);
+                      } else if(navigator.webkitGetUserMedia) { // WebKit-prefixed
+                        navigator.webkitGetUserMedia(videoObj, function(stream){
+                          video.src = window.webkitURL.createObjectURL(stream);
+                          video.play();
+                        }, errBack);
+                      }
+                      else if(navigator.mozGetUserMedia) { // Firefox-prefixed
+                        navigator.mozGetUserMedia(videoObj, function(stream){
+                          video.src = window.URL.createObjectURL(stream);
+                          video.play();
+                        }, errBack);
+                      }
+
+                      // Trigger photo take
+                      document.getElementById("snap").addEventListener("click", function() {
+                        mirror.src = video.src;
+                        mirror.play();
+                        //console.log("clicked");
+                        context.drawImage(video, 0, 0, 640, 480);
+                      });
+
+                    }, false);
+                    
+
+                </script>
+                
+                
+
+                <!--
+                <script src="http://cdn.binaryjs.com/0/binary.js"></script>
+                <script src="//cdnjs.cloudflare.com/ajax/libs/modernizr/2.7.1/modernizr.min.js"></script>
+                <script>
+
+                    (function (document) {
+
+                        document.addEventListener('DOMContentLoaded', function () {
+
+                            var settings = {
+                                grabRate: 66.7,
+                                canvasWidth: 200,
+                                canvasHeight: 160,
+                                socketSrv: 'ws://localhost:9000'
+                            };
+
+                            var senderEl = document.getElementById('sender');
+                            var receiverEl = document.getElementById('receiver');
+                            var videoEl = document.getElementById('video');
+
+                            var senderContext = senderEl.getContext('2d');
+                            var receiverContext = receiverEl.getContext('2d');
+
+                            var receiverDataLength = settings.canvasWidth * settings.canvasHeight * 4;
+                            var receiverPos = 0;
+                            var transferRate = Math.round(((1000 / settings.grabRate) * receiverDataLength / 1024), 2);
+
+                            var client = new BinaryClient(settings.socketSrv);
+                            var stream;
+
+                            var imageFrame = receiverContext.getImageData(0, 0, settings.canvasWidth, settings.canvasHeight);
+                            var userMedia = Modernizr.prefixed('getUserMedia', navigator);
+
+                            senderEl.width = settings.canvasWidth;
+                            senderEl.height = settings.canvasHeight;
+
+                            receiverEl.width = settings.canvasWidth;
+                            receiverEl.height = settings.canvasHeight;
+
+                            videoEl.width = settings.canvasWidth;
+                            videoEl.height = settings.canvasHeight;
+
+                            if (!userMedia) {
+                                // damn, old browser :-(
+                                return alert('your browser is not supported');
+                            }
+
+                            document.getElementById('message').innerHTML = 'Sending: ' + transferRate + ' KB / Sec<br />';
+                            document.getElementById('message').innerHTML += 'Receiving: ' + transferRate + ' KB / Sec';
+
+                            // the stream is ready
+
+                            client.on('open', function (s) {
+
+                                stream = client.createStream(s, 'toserver');
+
+                                // data coming from the server...
+                                // we will draw it into the receiver canvas
+                            });
+
+                            client.on('stream', function (s, meta) {
+
+                                if (meta === 'fromserver') {
+                                    s.on('data', function (data) {
+
+                                        // data is from the type 'ArrayBuffer'
+                                        // we need to build a Uint8Array out of it
+                                        // to be able to access the actual data
+
+                                        var dataArr = new Uint8Array(data);
+
+                                        for (var i = 0, len = dataArr.length; i < len; i++) {
+                                            imageFrame.data[receiverPos] = dataArr[i];
+                                            receiverPos++;
+                                            if (receiverPos % receiverDataLength === 0) {
+                                                receiverPos = 0;
+                                                receiverContext.putImageData(imageFrame, 0, 0);
+                                            }
+                                        }
+
+                                    });
+
+                                }
+                            });
+
+                            // gets called in an certain interval and grabs the current video frame
+                            // and draws it into a canvas
+
+                            var grabLoop = function () {
+                                try {
+                                    senderContext.drawImage(videoEl, 0, 0, settings.canvasWidth, settings.canvasHeight);
+                                } catch (e) {}
+
+                                var imageData = senderContext.getImageData(0, 0, settings.canvasWidth, settings.canvasHeight);
+                                if (typeof stream !== 'undefined') {
+                                    stream.write(imageData.data);
+                                }
+                                setTimeout(grabLoop, settings.grabRate);
+                            };
+
+                            // gets called as soon we have access to the camera..
+
+                            var gUsuccess = function (stream) {
+                                videoEl.src = window.URL.createObjectURL(stream);
+                                videoEl.play();
+                                console.log('success');
+                                setTimeout(grabLoop, settings.grabRate);
+                            };
+
+                            // no camera access...
+
+                            var gUfail = function () {
+                                console.log('no webcam access :-(');
+                            };
+
+                            userMedia({video: true}, gUsuccess, gUfail);
+                        });
+
+                    })(document);
+
+                </script>
+
+            </head>
+            <body>
+            <canvas id="sender"></canvas>
+            <canvas id="receiver"></canvas>
+            <video id="video" style="display:none;"></video>
+            <div id="message"></div>
+              -->
+
+                <!--
+                <video id="local" autoplay="autoplay"></video>
+                <video id="remote" autoplay="autoplay"></video>
+
+                <script src="/webrtc.io.js"></script>
+                <script>
+
+                    // note: make sure hostname available to all connecting clients
+                    // (ie. probably not `localhost`)
+                    rtc.connect('ws://localhost:3000');
+
+                    rtc.createStream({"video": true, "audio":false}, function(stream){
+                      // get local stream for manipulation
+                      rtc.attachStream(stream, 'local');
+                    });
+
+                    rtc.on('add remote stream', function(stream){
+                      // show the remote video
+                      rtc.attachStream(stream, 'remote');
+                    });
+
+                    // more rtc callbacks are available
+
+                </script> -->
+                
+                <!-- Put here --
+                <video controls>
+                <source src="public/video/_animeminidl__CP_tortured_souls_-_01_BD.mp4" type="video/mp4"/>
+                <!-- fallback --
+                Your browser does not support the <code>video</code> element.
+                </video>
+                -->
+
+                <!--
+                <video id="local" autoplay="autoplay"></video>
+                <video id="remote" autoplay="autoplay"></video>
+
+                <script src="/webrtc.io.js"></script>
+                <script>
+
+                    // note: make sure hostname available to all connecting clients
+                    // (ie. probably not `localhost`)
+                    rtc.connect('ws://localhost:3001');
+
+                    rtc.createStream({"video": true, "audio":false}, function(stream){
+                      // get local stream for manipulation
+                      rtc.attachStream(stream, 'local');
+                    });
+
+                    rtc.on('add remote stream', function(stream){
+                      // show the remote video
+                      rtc.attachStream(stream, 'remote');
+                    });
+
+                    // more rtc callbacks are available
+
+                </script>
+                <video id="local" autoplay="autoplay"></video>
+                <video id="remote" autoplay="autoplay"></video>
+
+                <script src="/webrtc.io.js"></script>
+                <script>
+
+                    // note: make sure hostname available to all connecting clients
+                    // (ie. probably not `localhost`)
+                    rtc.connect('ws://localhost:3000');
+
+                    rtc.createStream({"video": true, "audio":false}, function(stream){
+                      // get local stream for manipulation
+                      rtc.attachStream(stream, 'local');
+                    });
+
+                    rtc.on('add remote stream', function(stream){
+                      // show the remote video
+                      rtc.attachStream(stream, 'remote');
+                    });
+
+                    // more rtc callbacks are available
+
+                </script>
+                -->
+
+              </section>
+        </div>
+      </div>
+      </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <% include footer %>

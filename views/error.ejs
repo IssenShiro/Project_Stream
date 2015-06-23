@@ -1,0 +1,50 @@
+<% var title = 'Error Page | LearnVid - E-learning Video Online' %>
+<% include header %>
+  
+  <% if (user == "administrator") { %>
+      <nav>
+        <ul>
+          <li><a href="/user_manage" style="font-size:18px">Users</a></li>
+          <li><a href="/video_manage" style="font-size:18px">Video</a></li>
+          <li><a href="/logs" style="font-size:18px">Logs</a></li>          
+          <li><a href="/logout" style="font-size:18px">Logout</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <% } else if (user == "lecturer") { %>
+    <nav>
+        <ul>
+          <li><a href="/video_upload" style="font-size:18px">Upload</a></li>
+          <li><a href="/conference_master" style="font-size:18px">Conference</a></li>
+          <li><a href="/logout" style="font-size:18px">Logout</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <% } else if (user == "general") { %>
+    <nav>
+        <ul>
+          <li><a href="/" style="font-size:18px">Home</a></li>
+          <li><a href="/conference" style="font-size:18px">Conference</a></li>
+          <li><a href="/streaming" style="font-size:18px">Streaming</a></li>          
+          <li><a href="/login_page" style="font-size:18px">Log in</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <% } %>
+
+<div class="main-box">
+    <div class="container">
+        <div class="inside">
+            <div class="wrapper zerogrid">
+                <h2 style="text-align: center">Error Page : <%= status %> </h2>
+
+                <h3 style="text-align: center"><%= message %> </h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<% include footer %>

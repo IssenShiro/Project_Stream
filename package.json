@@ -1,0 +1,38 @@
+{
+  "name": "project_nodejs_streaming",
+  "version": "1.0.0",
+  "description": "Webserver streaming app using nodejs",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "streaming"
+  ],
+  "author": "IssenShiro (Iskandar)",
+  "license": "ISC",
+  "dependencies": {
+    "binaryjs": "^0.2.1",
+    "body-parser": "^1.12.4",
+    "connect-busboy": "0.0.2",
+    "connect-flash": "^0.1.1",
+    "cookie-parser": "^1.3.5",
+    "cron": "^1.0.9",
+    "crypto-js": "^3.1.5",
+    "ejs": "^2.3.1",
+    "express": "^4.12.4",
+    "express-paginate": "0.0.8",
+    "express-session": "^1.11.2",
+    "moment": "^2.10.3",
+    "mongoose": "^4.0.3",
+    "morgan": "^1.5.3",
+    "node-static": "^0.7.6",
+    "passport": "^0.2.2",
+    "passport-local": "^1.0.0",
+    "peer": "^0.2.8",
+    "peerjs": "^0.3.14",
+    "serve-favicon": "^2.2.1",
+    "webrtc.io": "0.0.4",
+    "websocket": "^1.0.19"
+  }
+}

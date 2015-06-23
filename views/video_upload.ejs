@@ -1,0 +1,293 @@
+<% var title = 'Video Upload | LearnVid - E-learning Video Online' %>
+<% include header %>
+
+    <nav>
+        <ul>
+          <li><a href="/video_upload" class="current" style="font-size:18px">Upload</a></li>
+          <li><a href="/conference_master" style="font-size:18px">Conference</a></li>
+          <li><a href="/logout" style="font-size:18px">Logout</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div class="main-box">
+    <div class="container">
+
+      <div class="inside">
+        <div class="wrapper zerogrid">
+      <div class="row">
+
+          <!-- content -->
+      <div class="col-2-3">
+        <div class="wrap-col">
+              <section id="content">
+
+                <form name="form-upload" class="pure-form pure-form-aligned" method="POST" action="/upload_video" enctype="multipart/form-data" onsubmit="return validateForm()">
+                    <fieldset>
+                      <div class="pure-control-group">
+                            <% if (error != 'none') { %>
+                            <h2 style="color:red"><%= error %></h2>
+                            <% } %>
+                            <h2>Upload Video</h2>
+                            <label for="name">Video Name</label>
+                            <input name="video_name" type="text" placeholder="Name">
+                        </div>
+
+                        <div class="pure-control-group">
+                            <label for="name">File</label>
+                            <input name="video_file" type="file">
+                        </div>
+
+                        <div class="pure-control-group">
+                            <h3 style="margin-left:2cm">Type</h3>
+                            <label for="onetime" class="pure-radio">
+                              <input id="onetime" type="radio" name="frequent" value="onetime" checked>
+                              Onetime
+                            </label>
+                            <label for="repeated" class="pure-radio">
+                              <input id="repeated" type="radio" name="frequent" value="repeated">
+                              Repeated
+                            </label>
+                        </div>
+
+                        <div id="once">
+                           <div class="pure-control-group" style="margin-left:2cm">
+                              <h3>Schedule</h3>
+                              <!--
+                              <select id="daydropdown">
+                              </select> 
+                              <select id="monthdropdown">
+                              </select> 
+                              <select id="yeardropdown">
+                              </select> 
+                              -->
+                              <input type="Text" id="calendar" maxlength="25" size="25" name='schedule' readonly/>
+                              <img src="public/js/images2/cal.gif" onclick="javascript:NewCssCal ('calendar','ddMMyyyy','dropdown',true,'24','','future')" style="cursor:pointer"/> 
+
+                              <h3>Duration Time</h3>
+                              <select name="duration_onetime">
+                                <option value="none">-Duration-</option>
+                                <option value=0.5>30 minutes</option>
+                                <option value=1>1 hour</option>
+                                <option value=1.5>1 hour 30 Minutes</option>
+                                <option value=2>2 hours</option>
+                              </select>
+                          </div>
+                          
+                        </div>
+
+                        <div id="many"> 
+                          <div class="pure-controls">
+                              <label for="day" class="pure-checkbox" style="margin-left:-1.75cm">
+                                  <h3>Start Time</h3>
+                                  <select name="hour_start">
+                                    <option value="none">Hour</option>
+                                    <option value=0>00</option>
+                                    <option value=1>01</option>
+                                    <option value=2>02</option>
+                                    <option value=3>03</option>
+                                    <option value=4>04</option>
+                                    <option value=5>05</option>
+                                    <option value=6>06</option>
+                                    <option value=7>07</option>
+                                    <option value=8>08</option>
+                                    <option value=9>09</option>
+                                    <option value=10>10</option>
+                                    <option value=11>11</option>
+                                    <option value=12>12</option>
+                                    <option value=13>13</option>
+                                    <option value=14>14</option>
+                                    <option value=15>15</option>
+                                    <option value=16>16</option>
+                                    <option value=17>17</option>
+                                    <option value=18>18</option>
+                                    <option value=19>19</option>
+                                    <option value=20>20</option>
+                                    <option value=21>21</option>
+                                    <option value=22>22</option>
+                                    <option value=23>23</option>
+                                  </select>
+                                  <select name="minute_start">
+                                    <option value="none">Minute</option>
+                                    <option value=0>00</option>
+                                    <option value=1>01</option>
+                                    <option value=2>02</option>
+                                    <option value=3>03</option>
+                                    <option value=4>04</option>
+                                    <option value=5>05</option>
+                                    <option value=6>06</option>
+                                    <option value=7>07</option>
+                                    <option value=8>08</option>
+                                    <option value=9>09</option>
+                                    <option value=10>10</option>
+                                    <option value=11>11</option>
+                                    <option value=12>12</option>
+                                    <option value=13>13</option>
+                                    <option value=14>14</option>
+                                    <option value=15>15</option>
+                                    <option value=16>16</option>
+                                    <option value=17>17</option>
+                                    <option value=18>18</option>
+                                    <option value=19>19</option>
+                                    <option value=20>20</option>
+                                    <option value=21>21</option>
+                                    <option value=22>22</option>
+                                    <option value=23>23</option>
+                                    <option value=24>24</option>
+                                    <option value=25>25</option>
+                                    <option value=26>26</option>
+                                    <option value=27>27</option>
+                                    <option value=28>28</option>
+                                    <option value=29>29</option>
+                                    <option value=30>30</option>
+                                    <option value=31>31</option>
+                                    <option value=32>32</option>
+                                    <option value=33>33</option>
+                                    <option value=34>34</option>
+                                    <option value=35>35</option>
+                                    <option value=36>36</option>
+                                    <option value=37>37</option>
+                                    <option value=38>38</option>
+                                    <option value=39>39</option>
+                                    <option value=40>40</option>
+                                    <option value=41>41</option>
+                                    <option value=42>42</option>
+                                    <option value=43>43</option>
+                                    <option value=44>44</option>
+                                    <option value=45>45</option>
+                                    <option value=46>46</option>
+                                    <option value=47>47</option>
+                                    <option value=48>48</option>
+                                    <option value=49>49</option>
+                                    <option value=50>50</option>
+                                    <option value=51>51</option>
+                                    <option value=52>52</option>
+                                    <option value=53>53</option>
+                                    <option value=54>54</option>
+                                    <option value=55>55</option>
+                                    <option value=56>56</option>
+                                    <option value=57>57</option>
+                                    <option value=58>58</option>
+                                    <option value=59>59</option>
+                                  </select>
+                                  <br>
+                                  <br>
+                                  <h3>Duration Time</h3>
+                                  <select name="duration_repeated">
+                                    <option value="none">-Duration-</option>
+                                    <option value=0.5>30 minutes</option>
+                                    <option value=1>1 hour</option>
+                                    <option value=1.5>1 hour 30 Minutes</option>
+                                    <option value=2>2 hours</option>
+                                  </select>
+                                  <br>
+                                  <br>
+                                  <h3>Day</h3>
+                                  <input id="monday" name="monday" type="checkbox" value=1> Monday &nbsp
+                                  <input id="tuesday" name="tuesday" type="checkbox" value=2> Tuesday &nbsp
+                                  <input id="wednesday" name="wednesday" type="checkbox" value=3> Wednesday <br> <br>
+                                  <input id="thursday" name="thursday" type="checkbox" value=4> Thursday &nbsp
+                                  <input id="friday" name="friday" type="checkbox" value=5> Friday &nbsp
+                                  <input id="saturday" name="saturday" type="checkbox" value=6> Saturday &nbsp
+                                  <input id="sunday" name="sunday" type="checkbox" value=0> Sunday
+                              </label>
+                          </div>
+                        </div>
+
+                        <div class="pure-controls">
+                            <button type="submit" class="pure-button pure-button-primary">Submit</button>
+                        </div>
+                    </fieldset>
+                </form>
+
+                <script type="text/javascript">
+
+                function validateForm() {
+                    var video_name = document.forms["form-upload"]["video_name"].value;
+                    var video_file = document.forms["form-upload"]["video_file"].value;
+                    var frequent = document.forms["form-upload"]["frequent"].value;
+                    var schedule = document.forms["form-upload"]["schedule"].value;
+                    var duration_onetime = document.forms["form-upload"]["duration_onetime"].value;
+                    var duration_repeated = document.forms["form-upload"]["duration_repeated"].value;
+                    var hour_start = document.forms["form-upload"]["hour_start"].value;
+                    var minute_start = document.forms["form-upload"]["minute_start"].value;
+
+
+                    var monday = document.getElementById('monday');
+                    var tuesday = document.getElementById('tuesday');
+                    var wednesday = document.getElementById('wednesday');
+                    var thursday = document.getElementById('thursday');
+                    var friday = document.getElementById('friday');
+                    var saturday = document.getElementById('saturday');
+                    var sunday = document.getElementById('sunday');
+
+                    if (video_name == null || video_name == "") {
+                        alert("Please fill and give unique name to video");
+                        return false;
+                    }
+
+                    if (video_file == null || video_file == "") {
+                        alert("Please choose file you want to upload");
+                        return false;
+                    }
+
+                    if ((schedule == null || schedule == "" || duration_onetime == 'none' ) && frequent == 'onetime') {
+                        alert("Please select schedule and duration for video");
+                        return false;
+                    }
+
+                    if (((!monday.checked && !tuesday.checked && !wednesday.checked && 
+                          !thursday.checked && !friday.checked && !saturday.checked && !sunday.checked) ||
+                          hour_start == 'none' || minute_start == 'none' || duration_repeated == 'none') && frequent == 'repeated') {
+                        alert("Please select time, day, and duration for video");
+                        return false;
+                    }
+                }
+
+                //populatedropdown(id_of_day_select, id_of_month_select, id_of_year_select)
+                window.onload=function() {
+                  populatedropdown("daydropdown", "monthdropdown", "yeardropdown")
+                }
+
+                window.addEventListener("DOMContentLoaded", function() {
+
+                  var onetime = document.getElementById("onetime"),
+                      repeated = document.getElementById("repeated"),
+                      many_option = document.getElementById("many"),
+                      once_option = document.getElementById("once");
+
+                  if(onetime.checked) {
+                    many_option.style.display = "none";
+                    once_option.style.display = "block";
+                  }
+                  else
+                  if(repeated.checked) {
+                    many_option.style.display = "block";
+                    once_option.style.display = "none";
+                  }
+
+                  onetime.addEventListener("click", function() {
+                     many_option.style.display = "none";
+                     once_option.style.display = "block";
+                  })
+
+                  repeated.addEventListener("click", function() {
+                     many_option.style.display = "block";
+                     once_option.style.display = "none";
+                  })
+
+                }, false);
+    
+                </script>
+
+              </section>
+        </div>
+      </div>
+      </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<% include footer %>
