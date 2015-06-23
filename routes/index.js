@@ -156,16 +156,53 @@ router.get('/user_manage', authentication, function(req, res, next) {
   
 })
 
+// GET admin video manage
+router.get('/video_manage', authentication, function(req, res, next) {
+  //console.log(req.user);
+  if(req.user.role == "administrator") {
+      Video.find({}, function(err, data) {
+      if(req.query.message == 1)
+      {
+        res.render('video_manage', {data: data, message: "Duplicate data!"});
+      }
+      else
+      if(req.query.message == 2)
+      {
+        res.render('video_manage', {data: data, message: "Wrong format input!"});
+      }
+      else
+      {
+        res.render('video_manage', {data: data, message : "none"});
+      }
+    })
+  }
+  else
+  {
+    res.redirect('/video_upload');
+  }
+  
+})
+
 // GET dosen video upload
 router.get('/video_upload', authentication, function(req, res, next) {
   if(req.user.role == "lecturer") {
-    if(req.query.error == 1) {
-      res.render('video_upload', {error : 'Format must be "webm", "mp4", or "mkv"'})
-    }
-    else
-    {
-      res.render('video_upload', {error: 'none'});
-    }
+    Video.find({}, function(err, data) {
+      if(req.query.error == 1) {
+        res.render('video_upload', {data: data, name: req.user.username, error : 'Format must be "webm", "mp4", or "mkv"'})
+      }
+      else
+      if(req.query.error == 2) {
+        res.render('video_upload', {data: data, name: req.user.username, error : 'Name is already exist, use another name!'})
+      }
+      else
+      if(req.query.error == 3) {
+        res.render('video_upload', {data: data, name: req.user.username, error : 'Schedule has been booked, try another starting time'})
+      }
+      else
+      {
+        res.render('video_upload', {data: data, name: req.user.username, error: 'none'});
+      }
+    });
   }
   else
   {
@@ -368,47 +405,115 @@ router.post('/upload_video', authentication, function(req, res, next) {
     if(format[last] == 'webm' || format[last] == 'gif' || format[last] == 'mkv') {
       
       var listdir = fs.readdirSync('./public/video/');
-      console.log(listdir.indexOf(name + '.' + format[last]));
+      //console.log(listdir.indexOf(name + '.' + format[last]));
       if(listdir.indexOf(name + '.' + format[last]) == -1)
       {
-        fstream = fs.createWriteStream('./public/video/' + name + '.' + format[last]);
-        file.pipe(fstream);
-        fstream.on('close', function() {
-          /*
-          console.log('duration : ' + duration);
-          console.log('time_start : ' + time_start);
-          console.log('time_finish : '  + time_finish);
-          console.log('array : ' + day);
-          */
-          ///*
-          var cron_command = "";
-          if(day == "")
+        Video.find({}, function(err, data) {
+          var conflict = 0;
+          for(var i = 0; i < data.length; i++) {
+            
+              if((data[i].schedule_finish.getHours() == time_start.getHours() || data[i].schedule_start.getHours() == time_start.getHours()) ||
+                 (data[i].schedule_finish.getHours() == time_finish.getHours() || data[i].schedule_start.getHours() == time_finish.getHours())) 
+              {
+                console.log("yay");
+                if(data[i].type == "onetime" && frequent == "onetime")
+                {
+                  if((data[i].schedule_finish >= time_start && data[i].schedule_start <= time_start) ||
+                     (data[i].schedule_finish >= time_finish && data[i].schedule_start <= time_finish))
+                  {
+                    conflict = 1;
+                  }                 
+                }
+                else
+                if(data[i].type == "onetime" && frequent == "repeated") 
+                { 
+                  // Forgiven
+                  /*
+                  var dayStartInDB = data[i].schedule_start.getDay();
+                  //var dayFinishInDB = data[i].schedule_finish.getDay();
+                  for(var j = 0; j < day.length; j++)
+                  {
+                    if(dayStartInDB == day[j])
+                    {
+                      //console.log("hello");
+                      conflict = 1;
+                    }
+                  }
+                  */
+                }
+                else
+                if(data[i].type == "repeated" && frequent == "onetime") 
+                {
+                  var dayStartInForm = time_start.getDay();
+                  if(data[i].day.indexOf(dayStartInForm.toString()) != -1)
+                  {
+                    conflict = 1;
+                  }
+                }
+                else
+                if(data[i].type == "repeated" && frequent == "repeated")
+                {
+                  for(var j = 0; j < day.length; j++)
+                  {
+                    if(data[i].day.indexOf(day[j].toString()) != -1)
+                    {
+                      //console.log("hello");
+                      conflict = 1;
+                    }
+                  }
+                }
+              }
+            
+          }
+
+          if(conflict == 0)
           {
-            cron_command = '0 ' + time_start.getMinutes() + ' ' 
-            + time_start.getHours() + ' ' + time_start.getDate() + ' '
-            + time_start.getMonth() + ' ' + '*';
+            fstream = fs.createWriteStream('./public/video/' + name + '.' + format[last]);
+            file.pipe(fstream);
+            fstream.on('close', function() {
+              /*
+              console.log('duration : ' + duration);
+              console.log('time_start : ' + time_start);
+              console.log('time_finish : '  + time_finish);
+              console.log('array : ' + day);
+              */
+              ///*
+              var cron_command = "";
+              if(day == "")
+              {
+                cron_command = '0 ' + time_start.getMinutes() + ' ' 
+                + time_start.getHours() + ' ' + time_start.getDate() + ' '
+                + time_start.getMonth() + ' ' + '*';
+              }
+              else
+              {
+                cron_command = '0 ' + time_start.getMinutes() + ' ' 
+                + time_start.getHours() + ' ' + '*' + ' '
+                + '*' + ' ' + day;
+              }
+              var uploaded_video = Video ({
+                                              name : name,
+                                              uploader : req.user.username,
+                                              type : frequent,
+                                              duration : duration,
+                                              day: day,
+                                              schedule_start: time_start,
+                                              schedule_finish: time_finish,
+                                              status: "Not aired yet",
+                                              cron : cron_command
+                                          });
+              uploaded_video.save();
+              //*/
+              res.redirect('/video_upload');
+            })
           }
           else
           {
-            cron_command = '0 ' + time_start.getMinutes() + ' ' 
-            + time_start.getHours() + ' ' + '*' + ' '
-            + '*' + ' ' + day;
+            file.resume();
+            res.redirect('/video_upload?error=3');
           }
-          var uploaded_video = Video ({
-                                          name : name,
-                                          uploader : req.user.username,
-                                          type : frequent,
-                                          duration : duration,
-                                          day: day,
-                                          schedule_start: time_start,
-                                          schedule_finish: time_finish,
-                                          status: "Not aired yet",
-                                          cron : cron_command
-                                      });
-          uploaded_video.save();
-          //*/
-          res.redirect('/video_upload');
         })
+        
       }
       else
       {

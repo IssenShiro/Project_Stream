@@ -6,7 +6,7 @@ var videoSchema = new Schema({
 	uploader : String,
 	type : String,
 	duration : Number,
-	day: String,
+	day: Array,
 	schedule_start: Date,
 	schedule_finish: Date,
 	status: String,
