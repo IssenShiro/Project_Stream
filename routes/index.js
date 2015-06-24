@@ -267,7 +267,7 @@ router.get('/conference/:username', function(req, res, next) {
 
 // GET streaming page
 router.get('/streaming', in_session, function(req, res, next) {
-  Video.find({}, function(err, data) {
+  Video.find({$or : [ {status: 'Not aired yet'}, {status: 'Not airing time'} ] }).sort({schedule_start: 1}).exec(function(err, data) {
     var temp = now_running.split('.');
     var format_index = temp.length - 1;
     var format_video = temp[format_index];
@@ -347,7 +347,7 @@ router.get('/video_upload', authentication, function(req, res, next) {
   if(req.user.role == "lecturer") {
     Video.find({}, function(err, data) {
       if(req.query.error == 1) {
-        res.render('video_upload', {data: data, name: req.user.username, error : 'Format must be "webm", "mp4", or "mkv"'})
+        res.render('video_upload', {data: data, name: req.user.username, error : 'Format must be "webm", "mp4", or "ogg"'})
       }
       else
       if(req.query.error == 2) {
@@ -562,7 +562,7 @@ router.post('/upload_video', authentication, function(req, res, next) {
     var last = format.length - 1;
     //console.log(fieldname);
 
-    if(format[last] == 'webm' || format[last] == 'mp4' || format[last] == 'gif') {
+    if(format[last] == 'webm' || format[last] == 'mp4' || format[last] == 'ogg') {
       
       var listdir = fs.readdirSync('./public/video/');
       //console.log(listdir.indexOf(name + '.' + format[last]));
@@ -576,7 +576,8 @@ router.post('/upload_video', authentication, function(req, res, next) {
               if((data[i].schedule_finish.getHours() == time_start.getHours() || data[i].schedule_start.getHours() == time_start.getHours()) ||
                  (data[i].schedule_finish.getHours() == time_finish.getHours() || data[i].schedule_start.getHours() == time_finish.getHours())) 
               {
-                console.log("yay");
+                //console.log("yay");
+                //console.log(frequent);
                 if(data[i].type == "onetime" && frequent == "onetime")
                 {
                   if((data[i].schedule_finish >= time_start && data[i].schedule_start <= time_start) ||
@@ -632,13 +633,7 @@ router.post('/upload_video', authentication, function(req, res, next) {
             fstream = fs.createWriteStream('./public/video/' + name + '.' + format[last]);
             file.pipe(fstream);
             fstream.on('close', function() {
-              /*
-              console.log('duration : ' + duration);
-              console.log('time_start : ' + time_start);
-              console.log('time_finish : '  + time_finish);
-              console.log('array : ' + day);
-              */
-              ///*
+              
               var cron_command = "";
               if(day == "")
               {
@@ -719,28 +714,27 @@ router.post('/upload_video', authentication, function(req, res, next) {
                   }
                 }
               }, function() {
-                console.log('done running onetime video ' + name + '.' + format[last]);
-                now_running = "none";
-                video_type = "none";
-                Video.update(
-                  { name: name + '.' + format[last] },
-                  {
-                    $set : { status: "Done airing" }    
-                  },
-                  { upsert: true },
-                  function(err, callback) {
-                    console.log("updating to done airing");
-                  }  
-                );
-              },
-              true,
-              'Asia/Jakarta' 
-            );
-            allJobs.splice(queue, 0, job);
+                  console.log('done running onetime video ' + name + '.' + format[last]);
+                  now_running = "none";
+                  video_type = "none";
+                  Video.update(
+                    { name: name + '.' + format[last] },
+                    {
+                      $set : { status: "Done airing" }    
+                    },
+                    { upsert: true },
+                    function(err, callback) {
+                      console.log("updating to done airing");
+                    }  
+                  );
+                },
+                true,
+                'Asia/Jakarta' 
+              );
+              allJobs.splice(queue, 0, job);
 
-              //*/
               res.redirect('/video_upload');
-            })
+            });
           }
           else
           {
