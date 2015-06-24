@@ -23,6 +23,8 @@ var User = require('../models/users');
 var Video = require('../models/video');
 
 var now_running = "none";
+var video_type = "none";
+var allJobs = [];
 
 /*** FOR AUTHENTICATION ***/
 
@@ -105,48 +107,57 @@ Video.find({}, function(err, data) {
     var type = data[i].type;
     var duration = data[i].duration;
     var status = data[i].status;
+    var queue = data[i].queue;
 
-    if(status == "Not aired yet" || status == 'Not airing time' || status == 'Airing')
+    if(status == "Not aired yet" || status == 'Not airing time' || type == "repeated")
     {
       var job = new CronJob(data[i].cron, function() {
           var this_job = this;
-          now_running = 'public/video/' + video_name;
-          console.log('running video : ' + video_name);
-          Video.update(
-            { name: video_name },
-            {
-              $set : { status: "Airing" }    
-            },
-            { upsert: true },
-            function(err, callback) {
-              console.log("updating to airing");
-            } 
-          );
-          if(type == 'onetime') {
-            setTimeout(function(){
-              this_job.stop();
-            }, 10000);
-          }
-          else
+          if(video_type == 'none' || video_type == 'repeated')
           {
-            setTimeout(function(){
-              console.log('done running repeated video ' + video_name);
-              now_running = "none";
-              Video.update(
-                { name: video_name },
-                {
-                  $set : { status: "Not airing time" }    
-                },
-                { upsert: true },
-                function(err, callback) {
-                  console.log("updating to not airing time");
-                } 
-              );
-            }, 10000);
+            now_running = video_name;
+            video_type = type;
+            console.log('running video : ' + video_name);
+            Video.update(
+              { name: video_name },
+              {
+                $set : { status: "Airing" }    
+              },
+              { upsert: true },
+              function(err, callback) {
+                console.log("updating to airing");
+              } 
+            );
+            if(type == 'onetime') {
+              setTimeout(function(){
+                this_job.stop();
+              }, duration*3600*1000);
+            }
+            else
+            {
+              setTimeout(function(){
+                console.log('done running repeated video ' + video_name);
+                now_running = "none";
+                video_type = "none";
+
+                Video.update(
+                  { name: video_name },
+                  {
+                    $set : { status: "Not airing time" }    
+                  },
+                  { upsert: true },
+                  function(err, callback) {
+                    console.log("updating to not airing time");
+                  } 
+                );
+              }, duration*3600*1000);
+            }
           }
+
         }, function() {
           console.log('done running onetime' + video_name);
           now_running = "none";
+          video_type = "none";
           Video.update(
             { name: video_name },
             {
@@ -161,7 +172,79 @@ Video.find({}, function(err, data) {
         true,
         'Asia/Jakarta' 
       );
+      allJobs.splice(queue, 0, job);
+    };
+
+    if(status == 'Airing')
+    {
+      var new_cron;
+      now_running = video_name;
+      video_type = type;
+
+      if(data[i].day.length == 0)
+      {
+        new_cron = '0 ' + data[i].schedule_finish.getMinutes() + ' ' 
+        + data[i].schedule_finish.getHours() + ' ' + data[i].schedule_finish.getDate() + ' '
+        + data[i].schedule_finish.getMonth() + ' ' + '*';
+      }
+      else
+      {
+        new_cron = '0 ' + data[i].schedule_finish.getMinutes() + ' ' 
+        + data[i].schedule_finish.getHours() + ' ' + '*' + ' '
+        + '*' + ' ' + data[i].day;
+      }
+
+      var job = new CronJob(new_cron, function() {
+          var this_job = this;
+
+          if(type == 'onetime') {
+            console.log('done running onetime' + video_name);
+            if(now_running == video_name)
+            {
+              now_running = "none";
+              video_type = "none";
+            }
+            Video.update(
+              { name: video_name },
+              {
+                $set : { status: "Done airing" }    
+              },
+              { upsert: true },
+              function(err, callback) {
+                console.log("updating to done airing");
+              } 
+            );
+            this_job.stop();
+          }
+          else
+          {
+            console.log('done running repeated video ' + video_name);
+            if(now_running == video_name)
+            {
+              now_running = "none";
+              video_type = "none";
+            }
+            Video.update(
+              { name: video_name },
+              {
+                $set : { status: "Not airing time" }    
+              },
+              { upsert: true },
+              function(err, callback) {
+                console.log("updating to not airing time");
+              } 
+            );
+            this_job.stop();
+          }
+        }, function() {
+          console.log("Stopped");
+        },
+        true,
+        'Asia/Jakarta' 
+      );
+      allJobs.push(job);
     }
+    //console.log(allJobs);
   }
 });
 
@@ -184,7 +267,12 @@ router.get('/conference/:username', function(req, res, next) {
 
 // GET streaming page
 router.get('/streaming', in_session, function(req, res, next) {
-  res.render('streaming');
+  Video.find({}, function(err, data) {
+    var temp = now_running.split('.');
+    var format_index = temp.length - 1;
+    var format_video = temp[format_index];
+    res.render('streaming', {video_name: now_running, format_video: format_video, data: data});
+  });
 });
 
 // GET login page
@@ -373,6 +461,7 @@ router.post('/upload_video', authentication, function(req, res, next) {
       hour_start = 0,
       minute_start = 0,
       duration,
+      queue,
       day = [];
 
   var time_start = new Date(); 
@@ -481,6 +570,7 @@ router.post('/upload_video', authentication, function(req, res, next) {
       {
         Video.find({}, function(err, data) {
           var conflict = 0;
+          queue = data.length;
           for(var i = 0; i < data.length; i++) {
             
               if((data[i].schedule_finish.getHours() == time_start.getHours() || data[i].schedule_start.getHours() == time_start.getHours()) ||
@@ -574,7 +664,7 @@ router.post('/upload_video', authentication, function(req, res, next) {
               }
 
               var uploaded_video = Video ({
-                                              name : name,
+                                              name : name + '.' + format[last],
                                               uploader : req.user.username,
                                               type : frequent,
                                               duration : duration,
@@ -582,51 +672,58 @@ router.post('/upload_video', authentication, function(req, res, next) {
                                               schedule_start: time_start,
                                               schedule_finish: time_finish,
                                               status: status_now,
+                                              queue: queue,
                                               cron : cron_command
                                           });
               uploaded_video.save();
 
               var job = new CronJob(cron_command, function() {
                 var this_job = this;
-                now_running = 'public/video/' + name;
-                console.log('running video : ' + name);
-                Video.update(
-                  { name: name },
-                  {
-                    $set : { status: "Airing" }    
-                  },
-                  { upsert: true },
-                  function(err, callback) {
-                    console.log("updating to airing");
-                  }  
-                );
-                if(frequent == 'onetime') {
-                  setTimeout(function(){
-                    this_job.stop();
-                  }, 10000);
-                }
-                else
+                if(video_type == 'none' || video_type == 'repeated')
                 {
-                  setTimeout(function(){
-                    console.log('done running repeated video ' + name);
-                    now_running = "none";
-                    Video.update(
-                      { name: name },
-                      {
-                        $set : { status: "Not airing time" }    
-                      },
-                      { upsert: true },
-                      function(err, callback) {
-                        console.log("updating to not airing time");
-                      } 
-                    );
-                  }, 10000);
+                  now_running = name + '.' + format[last];
+                  video_type = frequent;
+                  console.log('running video : ' + name + '.' + format[last]);
+                  Video.update(
+                    { name: name + '.' + format[last] },
+                    {
+                      $set : { status: "Airing" }    
+                    },
+                    { upsert: true },
+                    function(err, callback) {
+                      console.log("updating to airing");
+                    }  
+                  );
+                  if(frequent == 'onetime') {
+                    setTimeout(function(){
+                      this_job.stop();
+                    }, duration*3600*1000);
+                  }
+                  else
+                  {
+                    setTimeout(function(){
+                      console.log('done running repeated video ' + name + '.' + format[last]);
+                      now_running = "none";
+                      video_type = "none";
+                      Video.update(
+                        { name: name + '.' + format[last] },
+                        {
+                          $set : { status: "Not airing time" }    
+                        },
+                        { upsert: true },
+                        function(err, callback) {
+                          console.log("updating to not airing time");
+                        } 
+                      );
+                    }, duration*3600*1000);
+                  }
                 }
               }, function() {
-                console.log('done running onetime video ' + name);
+                console.log('done running onetime video ' + name + '.' + format[last]);
                 now_running = "none";
+                video_type = "none";
                 Video.update(
-                  { name: name },
+                  { name: name + '.' + format[last] },
                   {
                     $set : { status: "Done airing" }    
                   },
@@ -639,6 +736,7 @@ router.post('/upload_video', authentication, function(req, res, next) {
               true,
               'Asia/Jakarta' 
             );
+            allJobs.splice(queue, 0, job);
 
               //*/
               res.redirect('/video_upload');

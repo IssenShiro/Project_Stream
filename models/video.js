@@ -10,6 +10,7 @@ var videoSchema = new Schema({
 	schedule_start: Date,
 	schedule_finish: Date,
 	status: String,
+	queue: Number, 
 	cron : String
 });
 
