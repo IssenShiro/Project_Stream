@@ -5,6 +5,7 @@ var flash = require('connect-flash');
 var busboy = require('connect-busboy');
 var fs = require('fs');
 var sys = require('sys');
+var CronJob = require('cron').CronJob;
 var paginate = require('express-paginate')
 var hash = require('./pass').hash;
 var regex = /^\w+$/;
@@ -20,6 +21,8 @@ var passport = require('passport'),
 
 var User = require('../models/users');
 var Video = require('../models/video');
+
+var now_running = "none";
 
 /*** FOR AUTHENTICATION ***/
 
@@ -93,6 +96,74 @@ var in_session = function(req, res, done)
     done();
   }
 }
+
+// Function to load cron every restart server
+Video.find({}, function(err, data) {
+  for(var i = 0; i < data.length; i++) {
+
+    var video_name = data[i].name;
+    var type = data[i].type;
+    var duration = data[i].duration;
+    var status = data[i].status;
+
+    if(status == "Not aired yet" || status == 'Not airing time' || status == 'Airing')
+    {
+      var job = new CronJob(data[i].cron, function() {
+          var this_job = this;
+          now_running = 'public/video/' + video_name;
+          console.log('running video : ' + video_name);
+          Video.update(
+            { name: video_name },
+            {
+              $set : { status: "Airing" }    
+            },
+            { upsert: true },
+            function(err, callback) {
+              console.log("updating to airing");
+            } 
+          );
+          if(type == 'onetime') {
+            setTimeout(function(){
+              this_job.stop();
+            }, 10000);
+          }
+          else
+          {
+            setTimeout(function(){
+              console.log('done running repeated video ' + video_name);
+              now_running = "none";
+              Video.update(
+                { name: video_name },
+                {
+                  $set : { status: "Not airing time" }    
+                },
+                { upsert: true },
+                function(err, callback) {
+                  console.log("updating to not airing time");
+                } 
+              );
+            }, 10000);
+          }
+        }, function() {
+          console.log('done running onetime' + video_name);
+          now_running = "none";
+          Video.update(
+            { name: video_name },
+            {
+              $set : { status: "Done airing" }    
+            },
+            { upsert: true },
+            function(err, callback) {
+              console.log("updating to done airing");
+            } 
+          );
+        },
+        true,
+        'Asia/Jakarta' 
+      );
+    }
+  }
+});
 
 // GET index page
 router.get('/', in_session, function(req, res, next) {
@@ -402,7 +473,7 @@ router.post('/upload_video', authentication, function(req, res, next) {
     var last = format.length - 1;
     //console.log(fieldname);
 
-    if(format[last] == 'webm' || format[last] == 'gif' || format[last] == 'mkv') {
+    if(format[last] == 'webm' || format[last] == 'mp4' || format[last] == 'gif') {
       
       var listdir = fs.readdirSync('./public/video/');
       //console.log(listdir.indexOf(name + '.' + format[last]));
@@ -491,6 +562,17 @@ router.post('/upload_video', authentication, function(req, res, next) {
                 + time_start.getHours() + ' ' + '*' + ' '
                 + '*' + ' ' + day;
               }
+
+              var status_now;
+              if (frequent == 'onetime')
+              {
+                status_now = "Not aired yet";
+              }
+              else
+              {
+                status_now = "Not airing time";
+              }
+
               var uploaded_video = Video ({
                                               name : name,
                                               uploader : req.user.username,
@@ -499,10 +581,65 @@ router.post('/upload_video', authentication, function(req, res, next) {
                                               day: day,
                                               schedule_start: time_start,
                                               schedule_finish: time_finish,
-                                              status: "Not aired yet",
+                                              status: status_now,
                                               cron : cron_command
                                           });
               uploaded_video.save();
+
+              var job = new CronJob(cron_command, function() {
+                var this_job = this;
+                now_running = 'public/video/' + name;
+                console.log('running video : ' + name);
+                Video.update(
+                  { name: name },
+                  {
+                    $set : { status: "Airing" }    
+                  },
+                  { upsert: true },
+                  function(err, callback) {
+                    console.log("updating to airing");
+                  }  
+                );
+                if(frequent == 'onetime') {
+                  setTimeout(function(){
+                    this_job.stop();
+                  }, 10000);
+                }
+                else
+                {
+                  setTimeout(function(){
+                    console.log('done running repeated video ' + name);
+                    now_running = "none";
+                    Video.update(
+                      { name: name },
+                      {
+                        $set : { status: "Not airing time" }    
+                      },
+                      { upsert: true },
+                      function(err, callback) {
+                        console.log("updating to not airing time");
+                      } 
+                    );
+                  }, 10000);
+                }
+              }, function() {
+                console.log('done running onetime video ' + name);
+                now_running = "none";
+                Video.update(
+                  { name: name },
+                  {
+                    $set : { status: "Done airing" }    
+                  },
+                  { upsert: true },
+                  function(err, callback) {
+                    console.log("updating to done airing");
+                  }  
+                );
+              },
+              true,
+              'Asia/Jakarta' 
+            );
+
               //*/
               res.redirect('/video_upload');
             })
