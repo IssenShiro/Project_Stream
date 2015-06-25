@@ -47,7 +47,7 @@ passport.use(new LocalStrategy({
                {
                   $set : { status: "Online" }    
                },
-               { upsert: true },
+               { upsert: false },
                function(err, callback) {
                 done(null, user);
                } 
@@ -123,7 +123,7 @@ Video.find({}, function(err, data) {
               {
                 $set : { status: "Airing" }    
               },
-              { upsert: true },
+              { upsert: false },
               function(err, callback) {
                 console.log("updating to airing");
               } 
@@ -145,7 +145,7 @@ Video.find({}, function(err, data) {
                   {
                     $set : { status: "Not airing time" }    
                   },
-                  { upsert: true },
+                  { upsert: false },
                   function(err, callback) {
                     console.log("updating to not airing time");
                   } 
@@ -163,7 +163,7 @@ Video.find({}, function(err, data) {
             {
               $set : { status: "Done airing" }    
             },
-            { upsert: true },
+            { upsert: false },
             function(err, callback) {
               console.log("updating to done airing");
             } 
@@ -209,7 +209,7 @@ Video.find({}, function(err, data) {
               {
                 $set : { status: "Done airing" }    
               },
-              { upsert: true },
+              { upsert: false },
               function(err, callback) {
                 console.log("updating to done airing");
               } 
@@ -229,7 +229,7 @@ Video.find({}, function(err, data) {
               {
                 $set : { status: "Not airing time" }    
               },
-              { upsert: true },
+              { upsert: false },
               function(err, callback) {
                 console.log("updating to not airing time");
               } 
@@ -322,12 +322,12 @@ router.get('/video_manage', authentication, function(req, res, next) {
       Video.find({}, function(err, data) {
       if(req.query.message == 1)
       {
-        res.render('video_manage', {data: data, message: "Duplicate data!"});
+        res.render('video_manage', {data: data, message: "Data successfully deleted!"});
       }
       else
       if(req.query.message == 2)
       {
-        res.render('video_manage', {data: data, message: "Wrong format input!"});
+        res.render('video_manage', {data: data, message: "Data failed to delete!"});
       }
       else
       {
@@ -356,6 +356,9 @@ router.get('/video_upload', authentication, function(req, res, next) {
       else
       if(req.query.error == 3) {
         res.render('video_upload', {data: data, name: req.user.username, error : 'Schedule has been booked, try another starting time'})
+      }
+      if(req.query.error == 4) {
+        res.render('video_upload', {data: data, name: req.user.username, error : 'Data not found to delete!'})
       }
       else
       {
@@ -396,7 +399,7 @@ router.get('/logout', authentication, function(req, res, next) {
   {
     $set : { status: "Offline" }    
   },
-  { upsert: true },
+  { upsert: false },
   function(err, callback) {
       req.logout();
       res.redirect('/');
@@ -438,6 +441,81 @@ router.get('/delete_user', authentication, function(req, res, next) {
   else
   {
     res.redirect('/video_upload');
+  }
+})
+
+// GET admin video delete confirmation
+router.get('/admin_confirm_delete_video', authentication, function(req, res, next) {
+  if(req.user.role == "administrator") {
+      res.render('admin_confirm_delete_video', {name: req.query.name});
+  }
+  else
+  {
+    res.redirect('/video_upload');
+  }
+})
+
+// GET admin delete video delete commit
+router.get('/admin_delete_video', authentication, function(req, res, next) {
+  if(req.user.role == "administrator") {
+    Video.findOne({name: req.query.name}, function(err, data) {
+      if(data)
+      {
+        allJobs[data.queue].stop();
+
+        Video.remove({ name: req.query.name } , true );
+        
+        var file = './public/video/' + req.query.name; 
+        fs.unlink(file);
+        res.redirect('/video_manage?message=1');
+      }
+      else
+      {
+        res.redirect('/video_manage?message=2');
+      }
+    })
+  }
+  else
+  {
+    res.redirect('/video_upload');
+  }
+  console.log(allJobs);
+})
+
+// GET video delete confirmation
+router.get('/confirm_delete_video', authentication, function(req, res, next) {
+  if(req.user.role == "lecturer") {
+      res.render('confirm_delete_video', {name: req.query.name});
+  }
+  else
+  {
+    res.redirect('/user_manage');
+  }
+})
+
+// GET video delete commit
+router.get('/delete_video', authentication, function(req, res, next) {
+  if(req.user.role == "lecturer") {
+    Video.findOne({name: req.query.name}, function(err, data) {
+      if(data)
+      {
+        allJobs[data.queue].stop();
+
+        Video.remove({$and : [ { name: req.query.name }, {uploader: req.user.username} ] }, true );
+        
+        var file = './public/video/' + req.query.name; 
+        fs.unlink(file);
+        res.redirect('/video_upload');
+      }
+      else
+      {
+        res.redirect('/video_upload?error=4');
+      }
+    })
+  }
+  else
+  {
+    res.redirect('/user_manage');
   }
 })
 
@@ -684,7 +762,7 @@ router.post('/upload_video', authentication, function(req, res, next) {
                     {
                       $set : { status: "Airing" }    
                     },
-                    { upsert: true },
+                    { upsert: false },
                     function(err, callback) {
                       console.log("updating to airing");
                     }  
@@ -705,7 +783,7 @@ router.post('/upload_video', authentication, function(req, res, next) {
                         {
                           $set : { status: "Not airing time" }    
                         },
-                        { upsert: true },
+                        { upsert: false },
                         function(err, callback) {
                           console.log("updating to not airing time");
                         } 
@@ -722,7 +800,7 @@ router.post('/upload_video', authentication, function(req, res, next) {
                     {
                       $set : { status: "Done airing" }    
                     },
-                    { upsert: true },
+                    { upsert: false },
                     function(err, callback) {
                       console.log("updating to done airing");
                     }  
@@ -807,5 +885,56 @@ router.post('/user_manage', authentication, function(req, res, next) {
     console.log("Data tidak dimasukkan");
   }
 });
+
+// POST user edit commit
+router.post('/edit_user', authentication, function(req, res, next) {
+  if(req.user.role == "administrator") {
+    if( !isNaN(req.body.number) && 
+        regex.test(req.body.username) == true
+      )
+    {
+      hash(req.body.password, req.body.username, function(err, hash_value) {
+        if (err) return hash_value(err);
+
+        User.find({$and : [ {identity_number: req.body.number}, {username: req.body.username} ] }, function(err, data) {
+          if(data.length <= 1) 
+          {
+              User.update(
+                { identity_number: req.body.number },
+                {
+                  $set : { 
+                            name : req.body.name,
+                            username : req.body.username,
+                            password : hash_value.toString(),
+                            email : req.body.email,
+                            role : req.body.role,
+                            status : "Offline" 
+                          }    
+                },
+                { upsert: false },
+                function(err, callback) {
+
+                } 
+              );
+
+              res.redirect('/user_manage');
+          }
+          else
+          {
+            res.redirect('/user_manage?error_msg=1');
+          }
+        })
+      })
+    }
+    else
+    {
+      res.redirect('/user_manage?error_msg=2');
+    }
+  }
+  else
+  {
+    res.redirect('/video_upload');
+  }
+})
 
 module.exports = router;

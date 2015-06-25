@@ -1,0 +1,41 @@
+<% var title = 'Confirm Delete Video | LearnVid - E-learning Video Online' %>
+<% include header %>
+
+    <nav>
+        <ul>
+          <li><a href="/video_upload" class="current" style="font-size:18px">Upload</a></li>
+          <li><a href="/conference_master" style="font-size:18px">Conference</a></li>
+          <li><a href="/logout" style="font-size:18px">Logout</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div class="main-box">
+    <div class="container">
+
+      <div class="inside">
+        <div class="wrapper zerogrid">
+      <div class="row">
+
+          <!-- content -->
+      <div class="col-2-3">
+        <div class="wrap-col">
+              <section id="content">
+
+                    <fieldset style="text-align:center">
+                      <h2>Delete video with name <%=name%>?</h2>
+                        <a href="/delete_video?name=<%=name%>"><button class="pure-button pure-button-primary" style="margin-right:200px">Delete</button></a>
+                        <a href="/video_upload"><button class="pure-button pure-button-primary" style="background-color:red">Cancel</button></a>
+                    </fieldset>
+
+              </section>
+        </div>
+      </div>
+      </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<% include footer %>

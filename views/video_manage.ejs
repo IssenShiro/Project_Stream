@@ -24,6 +24,12 @@
               <section id="content">
 
                 <div class="fancy-table" >
+                  <% if (message == 'Data successfully deleted!') { %>
+                  <h2 style="color:green"><%= message %></h2>
+                  <% } %>
+                  <% if (message == 'Data failed to delete!') { %>
+                  <h2 style="color:red"><%= message %></h2>
+                  <% } %>
                   <h2>Video Data</h2>
                   <table style="width:120%">
                     <tr>
