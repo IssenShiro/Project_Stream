@@ -48,7 +48,7 @@
               <section id="content">
 
                 <div class="fancy-table" style="margin-left:3.5cm">
-                  <h2>Schedule</h2>
+                  <h2>Schedule Today</h2>
                   <table style="width:80%">
                     <tr>
                       <td>Video Name</td>
@@ -65,6 +65,16 @@
                         var day_video = data[i].day;
                         var time_video = data[i].schedule_start.getTime();
                         var type_video = data[i].type;
+                        var hour_video = data[i].schedule_start.getHours();
+                        var minute_video = data[i].schedule_start.getMinutes();
+                        if(hour_video == 0)
+                        {
+                          hour_video = '00';
+                        }
+                        if(minute_video == 0)
+                        {
+                          minute_video = '00';
+                        } 
                         var now = new Date();
 
                         if( (date_video == now.getDate() && month_video == now.getMonth() && year_video == now.getFullYear() && type_video == 'onetime' && time_video >= now.getTime()) || 
@@ -73,7 +83,7 @@
                     <tr>
                       <td><%= data[i].name %></td>
                       <td><%= data[i].uploader %></td>
-                      <td><%= data[i].schedule_start.getHours() + ':' + data[i].schedule_start.getMinutes() %></td>
+                      <td><%= hour_video + ':' + minute_video %></td>
                       <td><%= data[i].type %></td>
                     </tr>
                     <% } } } %>

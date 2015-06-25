@@ -345,7 +345,7 @@ router.get('/video_manage', authentication, function(req, res, next) {
 // GET dosen video upload
 router.get('/video_upload', authentication, function(req, res, next) {
   if(req.user.role == "lecturer") {
-    Video.find({}, function(err, data) {
+    Video.find({uploader: req.user.username}, function(err, data) {
       if(req.query.error == 1) {
         res.render('video_upload', {data: data, name: req.user.username, error : 'Format must be "webm", "mp4", or "ogg"'})
       }
