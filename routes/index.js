@@ -509,7 +509,7 @@ router.get('/delete_video', authentication, function(req, res, next) {
           now_running = 'none';
           video_type = 'none';
         }
-        
+
         allJobs[data.queue].stop();
 
         Video.remove({$and : [ { name: req.query.name }, {uploader: req.user.username} ] }, true );
@@ -907,28 +907,58 @@ router.post('/edit_user', authentication, function(req, res, next) {
       hash(req.body.password, req.body.username, function(err, hash_value) {
         if (err) return hash_value(err);
 
-        User.find({$and : [ {identity_number: req.body.number}, {username: req.body.username} ] }, function(err, data) {
-          if(data.length <= 1) 
+        User.find({username: req.body.username}, function(err, data) {
+          if(data.length == 1) 
           {
-              User.update(
+            if(data[0].identity_number == req.body.number)
+            {
+              var new_password;
+              if(req.body.password == "" || req.body.password == null)
+              {
+                User.update(
                 { identity_number: req.body.number },
-                {
-                  $set : { 
-                            name : req.body.name,
-                            username : req.body.username,
-                            password : hash_value.toString(),
-                            email : req.body.email,
-                            role : req.body.role,
-                            status : "Offline" 
-                          }    
-                },
-                { upsert: false },
-                function(err, callback) {
+                  {
+                    $set : { 
+                              name : req.body.name,
+                              username : req.body.username,
+                              email : req.body.email,
+                              role : req.body.role,
+                              status : "Offline" 
+                            }    
+                  },
+                  { upsert: false },
+                  function(err, callback) {
 
-                } 
-              );
+                  } 
+                );
+              }
+              else
+              {
+                User.update(
+                  { identity_number: req.body.number },
+                  {
+                    $set : { 
+                              name : req.body.name,
+                              username : req.body.username,
+                              password : hash_value.toString(),
+                              email : req.body.email,
+                              role : req.body.role,
+                              status : "Offline" 
+                            }    
+                  },
+                  { upsert: false },
+                  function(err, callback) {
+
+                  } 
+                );
+              }
 
               res.redirect('/user_manage');
+            }
+            else
+            {
+              res.redirect('/user_manage?error_msg=1');
+            }
           }
           else
           {
