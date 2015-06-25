@@ -347,7 +347,7 @@ router.get('/video_upload', authentication, function(req, res, next) {
   if(req.user.role == "lecturer") {
     Video.find({uploader: req.user.username}, function(err, data) {
       if(req.query.error == 1) {
-        res.render('video_upload', {data: data, name: req.user.username, error : 'Format must be "webm", "mp4", or "ogg"'})
+        res.render('video_upload', {data: data, name: req.user.username, error : 'Format must be "webm", "mp4", "flv", or "ogg"'})
       }
       else
       if(req.query.error == 2) {
@@ -461,6 +461,11 @@ router.get('/admin_delete_video', authentication, function(req, res, next) {
     Video.findOne({name: req.query.name}, function(err, data) {
       if(data)
       {
+        if(now_running == req.query.name)
+        {
+          now_running = 'none';
+          video_type = 'none';
+        }
         allJobs[data.queue].stop();
 
         Video.remove({ name: req.query.name } , true );
@@ -499,6 +504,12 @@ router.get('/delete_video', authentication, function(req, res, next) {
     Video.findOne({name: req.query.name}, function(err, data) {
       if(data)
       {
+        if(now_running == req.query.name)
+        {
+          now_running = 'none';
+          video_type = 'none';
+        }
+        
         allJobs[data.queue].stop();
 
         Video.remove({$and : [ { name: req.query.name }, {uploader: req.user.username} ] }, true );
@@ -640,7 +651,7 @@ router.post('/upload_video', authentication, function(req, res, next) {
     var last = format.length - 1;
     //console.log(fieldname);
 
-    if(format[last] == 'webm' || format[last] == 'mp4' || format[last] == 'ogg') {
+    if(format[last] == 'webm' || format[last] == 'mp4' || format[last] == 'ogg' || format[last] == 'flv') {
       
       var listdir = fs.readdirSync('./public/video/');
       //console.log(listdir.indexOf(name + '.' + format[last]));
@@ -935,6 +946,11 @@ router.post('/edit_user', authentication, function(req, res, next) {
   {
     res.redirect('/video_upload');
   }
+})
+
+// Experimental
+router.get('/getvideo/:name', function(req, res, next) {
+  res.sendfile('./public/video/' + req.params.name);
 })
 
 module.exports = router;

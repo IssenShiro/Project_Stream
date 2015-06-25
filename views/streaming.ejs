@@ -30,13 +30,25 @@
                   Your browser does not support the <code>video</code> element.
                   </video>
                 <% } else { %>
+                <% if (format_video == 'flv') { %>
+                  <h2>Now Playing <%= video_name %></h2>
+                  <a href="/public/video/<%= video_name %>"
+                      style="display:block;width:420px;height:300px;"
+                      id="player">
+                  </a>
+                 
+                  <script>
+                    flowplayer("player", "/public/js/flowplayer/flowplayer-3.2.18.swf");
+                  </script>
+
+                <% } else { %>
                   <h2>Now Playing <%= video_name %></h2>
                   <video controls width="420" height="100%" autoplay>
                   <source src="public/video/<%= video_name %>" type="video/<%= format_video %>"/>
                   <!-- fallback -->
                   Your browser does not support the <code>video</code> element.
                   </video>
-                <% } %>
+                <% } } %>
                 
               </aside>  
         </div>
@@ -57,7 +69,7 @@
                       <td>Type</td>
                     </tr>
                     <% if (data.length <= 0) {%>
-                    <h3>Data Not found</h3>
+                    <h3>No video found</h3>
                     <%} else { for (var i = 0; i < data.length; i++) {
                         var date_video = data[i].schedule_start.getDate();
                         var month_video = data[i].schedule_start.getMonth();
